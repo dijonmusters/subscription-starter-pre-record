@@ -1,10 +1,11 @@
 'use server';
 
 import { createClient } from '@/utils/supabase/server';
-import { cookies } from 'next/headers';
+import { cookies, headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { getURL, getErrorRedirect, getStatusRedirect } from 'utils/helpers';
 import { getAuthTypes } from 'utils/auth-helpers/settings';
+import { Provider } from '@supabase/supabase-js';
 
 function isValidEmail(email: string) {
   var regex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
@@ -30,6 +31,30 @@ export async function SignOut(formData: FormData) {
   }
 
   return '/signin';
+}
+
+export async function signInWithOAuth(formData: FormData) {
+  const provider = String(formData.get('provider')).trim() as Provider;
+  const origin = headers().get('origin');
+
+  const supabase = createClient();
+
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: provider,
+    options: {
+      redirectTo: `${origin}/auth/callback`
+    }
+  });
+
+  if (error) {
+    return getErrorRedirect(
+      '/signin/oauth_signin',
+      'Sign in failed.',
+      error.message
+    );
+  }
+
+  return redirect(data.url);
 }
 
 export async function signInWithEmail(formData: FormData) {
