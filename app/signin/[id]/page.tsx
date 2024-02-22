@@ -44,12 +44,12 @@ export default async function SignIn({
   // Check if the user is already logged in and redirect to the account page if so
   const supabase = createClient();
   const {
-    data: { session }
-  } = await supabase.auth.getSession();
+    data: { user }
+  } = await supabase.auth.getUser();
 
-  if (session && viewProp !== 'update_password') {
+  if (user && viewProp !== 'update_password') {
     return redirect('/');
-  } else if (!session && viewProp === 'update_password') {
+  } else if (!user && viewProp === 'update_password') {
     return redirect('/signin');
   }
 
